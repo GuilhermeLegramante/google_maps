@@ -34,11 +34,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
   final Completer<GoogleMapController> _googleMapController = Completer();
-
-  LatLng _initialLatLng = const LatLng(-29.88, -54.85);
 
   final List<Marker> _markers = <Marker>[];
 
@@ -47,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
   double? longitude;
 
   CameraPosition _cameraPosition =
-      CameraPosition(target: LatLng(-29.88, -54.85), zoom: 5.0);
+      const CameraPosition(target: LatLng(-29.69, -53.80), zoom: 15.0);
 
   void _onMapCreated(GoogleMapController controller) {
     _googleMapController.complete(controller);
@@ -57,10 +53,27 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    _cameraPosition = CameraPosition(
-      target: _initialLatLng,
-      zoom: 11.0,
-    );
+    _setCurrentPosition();
+  }
+
+  Future<void> _setCurrentPosition() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    setState(() {
+      latitude = position.latitude.toDouble();
+      longitude = position.longitude.toDouble();
+
+      print('PEGANDO POSICAO ATUAL...');
+
+      print('LATITUDE:' + latitude.toString());
+      print('LONGITUDE:' + longitude.toString());
+
+      _cameraPosition = CameraPosition(
+        target: LatLng(latitude!, longitude!),
+        zoom: 11.0,
+      );
+    });
   }
 
   void _incrementCounter() async {
@@ -71,10 +84,10 @@ class _MyHomePageState extends State<MyHomePage> {
       latitude = position.latitude.toDouble();
       longitude = position.longitude.toDouble();
 
+      print('ADD MARCADOR NA LOCALIZAÇÃO ATUAL');
+
       print('LATITUDE:' + latitude.toString());
       print('LONGITUDE:' + longitude.toString());
-
-      print('pega a posicao atual');
 
       _markers.add(Marker(
           markerId: const MarkerId('1'),
@@ -90,7 +103,8 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
           child: GoogleMap(
-              mapType: MapType.normal,
+              myLocationEnabled: true,
+              mapType: MapType.terrain,
               markers: Set<Marker>.of(_markers),
               onMapCreated: _onMapCreated,
               initialCameraPosition: _cameraPosition,
